@@ -1,0 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap');
+
+body {
+    background: linear-gradient(to right, #ff7e5f, #feb47b); /* Example gradient from pink to peach */
+    font-family: 'Playfair Display', serif;
+}
+
+.main {
+    background: linear-gradient(to right, #ff7e5f, #feb47b); /* Ensure the main section also has the gradient */
+}
+
+.css-1cpxqw2 .stFileUploader {
+    background: rgba(255, 255, 255, 0.8); /* Change background color to match */
+    border: 1px solid #ff7e5f;
+    border-radius: 5px;
+    color: #ff7e5f;
+    font-family: 'Playfair Display', serif;
+}
+
+.css-1cpxqw2 .stFileUploader:hover {
+    background: rgba(255, 255, 255, 0.9); /* Slightly different on hover */
+}
+
+.css-1cpxqw2 .stFileUploader label {
+    color: #ff7e5f; /* Change text color */
+    background-color: rgba(181, 60, 251, 0.8); /* Change label background */
+    font-family: 'Playfair Display', serif;
+}
+
+.stFileUploader label {
+    color: #ff7e5f; /* Change label text color */
+    font-family: 'Playfair Display', serif;
+}
+
+.css-1d391kg {
+    background-color: #de1818cc; /* Change sidebar background color */
+    color: #fd582e; /* Sidebar text color */
+    font-family: 'Playfair Display', serif;
+}
+
+.css-1d391kg .css-1lcbmhc {
+    color: #000000; /* Sidebar text color */
+    font-family: 'Playfair Display', serif;
+}
+
+.css-1d391kg .css-1lcbmhc a {
+    color: #ff7e5f; /* Sidebar link color */
+    font-family: 'Playfair Display', serif;
+}
