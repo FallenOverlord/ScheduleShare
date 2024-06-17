@@ -4,3 +4,25 @@ git commit -m "Initial commit"
 git branch -M main
 git remote add origin https://github.com/FallenOverlord/ScheduleShare.git
 git push -u origin main
+
+
+
+git pull origin main
+git add .
+git commit -m "Resolved merge conflicts"
+git push -u origin main
+
+
+git pull origin main --allow-unrelated-histories
+git add .
+git commit -m "Resolved merge conflicts"
+git push -u origin main
+
+
+#update
+git add requirements.txt
+git commit -m "Update requirements.txt with necessary dependencies"
+git push origin main
+
+
+
