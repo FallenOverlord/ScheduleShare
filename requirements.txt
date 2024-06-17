@@ -3,3 +3,4 @@ pandas
 icalendar
 bcrypt
 pyyaml
+streamlit_authenticator
