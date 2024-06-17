@@ -60,7 +60,7 @@ config = {
 }
 
 # Debugging: Print the loaded users
-st.write("Loaded users:", config['credentials'])
+#st.write("Loaded users:", config['credentials'])
 
 # Setup the authenticator
 authenticator = stauth.Authenticate(

@@ -4,3 +4,4 @@ icalendar
 bcrypt
 pyyaml
 streamlit_authenticator
+openpyxl
