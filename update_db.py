@@ -3,15 +3,6 @@ import sqlite3
 def update_db():
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
-    # Create users table
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            username TEXT PRIMARY KEY,
-            email TEXT,
-            name TEXT,
-            password TEXT
-        )
-    ''')
     # Create profiles table
     c.execute('''
         CREATE TABLE IF NOT EXISTS profiles (
@@ -19,8 +10,7 @@ def update_db():
             name TEXT,
             email TEXT,
             instagram TEXT,
-            timetable BLOB,
-            photo BLOB
+            timetable BLOB
         )
     ''')
     conn.commit()
