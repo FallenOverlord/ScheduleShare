@@ -20,9 +20,38 @@ def update_db():
             email TEXT,
             instagram TEXT,
             timetable BLOB,
-            photo BLOB
+            total_course_time INTEGER
         )
     ''')
+    # Add total_course_time column if it does not exist
+    try:
+        c.execute('ALTER TABLE profiles ADD COLUMN total_course_time INTEGER')
+    except sqlite3.OperationalError:
+        # The column already exists
+        pass
+
+    # Create gangs table
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS gangs (
+            gang_name TEXT PRIMARY KEY,
+            leader TEXT,
+            logo_url TEXT,
+            size INTEGER
+        )
+    ''')
+    # Add logo_url and size columns if they do not exist
+    try:
+        c.execute('ALTER TABLE gangs ADD COLUMN logo_url TEXT')
+    except sqlite3.OperationalError:
+        # The column already exists
+        pass
+
+    try:
+        c.execute('ALTER TABLE gangs ADD COLUMN size INTEGER')
+    except sqlite3.OperationalError:
+        # The column already exists
+        pass
+
     conn.commit()
     conn.close()
 
