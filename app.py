@@ -14,9 +14,26 @@ from db import load_users, save_user, user_exists
 from overlaps import get_overlapping_courses
 from coins import initialize_coins, get_coins, daily_sign_in
 from ads import show_ad
+import streamlit.components.v1 as components
 
 # Set page configuration
 st.set_page_config(page_title="Schedule Share", page_icon="📅", layout="wide")
+
+def show_ads():
+    ad_code = """
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3034150478834245"
+         crossorigin="anonymous"></script>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-3034150478834245"
+         data-ad-slot="7806394673"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+    """
+    components.html(ad_code, height=200)
 
 def logout():
     authenticator.logout('Logout', 'main')
@@ -83,6 +100,9 @@ if st.session_state.register:
 
     if st.button("Go back to login"):
         st.session_state.register = False
+    
+        # Show ads on the registration page
+    show_ads()
 
 else:
     # Login process
@@ -100,7 +120,8 @@ else:
         st.error(f"KeyError: {e}")
         st.stop()
 
-
+    # Show ads on the login page
+    show_ads()
 
     if authentication_status:
         st.write(f"Welcome *{name}*")
