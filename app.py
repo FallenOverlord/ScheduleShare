@@ -15,9 +15,53 @@ from overlaps import get_overlapping_courses
 from coins import initialize_coins, get_coins, daily_sign_in
 from ads import show_ad
 import streamlit.components.v1 as components
+from achievements import display_achievements
 
 # Set page configuration
 st.set_page_config(page_title="Schedule Share", page_icon="📅", layout="wide")
+
+# Custom CSS
+st.markdown("""
+    <style>
+        /* Background */
+        .stApp {
+            background: linear-gradient(135deg, #FF6F61 10%, #92A8D1 100%);
+            color: #FFFFFF;
+        }
+        /* Sidebar */
+        .css-1d391kg {
+            background-color: #6B5B95;
+            color: #FFFFFF;
+        }
+        .css-1d391kg .css-1y4p8pa {
+            color: #FFFFFF;
+        }
+        .css-1d391kg .css-1y4p8pa:hover {
+            color: #F7CAC9;
+        }
+        .css-1d391kg .css-1v3fvcr {
+            color: #FFFFFF;
+        }
+        .css-1d391kg .css-1v3fvcr:hover {
+            color: #F7CAC9;
+        }
+        /* Sidebar title */
+        .css-1d391kg .css-1j9dxys {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        /* Sidebar header */
+        .css-1d391kg .css-1v3fvcr {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        /* Sidebar text */
+        .css-1d391kg .css-1y4p8pa {
+            font-size: 16px;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 
 def show_ads():
     ad_code = """
@@ -159,7 +203,8 @@ else:
             # Generate and display the pie chart
             show_pie_chart(profile[4])
 
-
+            # Display achievements
+            display_achievements(username)
 
         elif page == "Profile":
             st.title("Create Your Profile")

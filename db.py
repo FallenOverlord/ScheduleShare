@@ -38,10 +38,24 @@ def save_profile(username, name, email, instagram, timetable):
         events, _ = extract_events(timetable)
         total_course_time_df = calculate_total_course_time(events)
         total_course_time = total_course_time_df['Total Hours'].sum()
+
+    # Check for the Social King achievement
+    achievement_social_king = 0
+    if email and instagram:
+        achievement_social_king = 1
+
     c.execute('''
-        INSERT OR REPLACE INTO profiles (username, name, email, instagram, timetable, total_course_time)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ''', (username, name, email, instagram, timetable, total_course_time))
+        INSERT OR REPLACE INTO profiles (username, name, email, instagram, timetable, total_course_time, achievement_social_king)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (username, name, email, instagram, timetable, total_course_time, achievement_social_king))
+    
+    # Also update the user's table
+    c.execute('''
+        UPDATE users
+        SET email = ?, achievement_social_king = ?  
+        WHERE username = ?
+    ''', (email, achievement_social_king, username))
+
     conn.commit()
     conn.close()
 

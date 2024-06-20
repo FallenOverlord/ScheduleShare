@@ -11,7 +11,13 @@ def update_db():
             name TEXT,
             password TEXT,
             coins INTEGER DEFAULT 0,
-            last_sign_in TEXT
+            last_sign_in TEXT,
+            consecutive_sign_in_days INTEGER DEFAULT 0,
+            achievement_money_master BOOLEAN DEFAULT 0,
+            achievement_leader_of_gang BOOLEAN DEFAULT 0,
+            achievement_loyal_guarddog BOOLEAN DEFAULT 0,
+            achievement_iron_determination BOOLEAN DEFAULT 0,
+            achievement_social_king BOOLEAN DEFAULT 0
         )
     ''')
     # Create profiles table
@@ -23,54 +29,29 @@ def update_db():
             instagram TEXT,
             timetable BLOB,
             total_course_time INTEGER,
-            coins INTEGER DEFAULT 0
+            coins INTEGER DEFAULT 0,
+            consecutive_sign_in_days INTEGER DEFAULT 0,
+            achievement_money_master BOOLEAN DEFAULT 0,
+            achievement_leader_of_gang BOOLEAN DEFAULT 0,
+            achievement_loyal_guarddog BOOLEAN DEFAULT 0,
+            achievement_iron_determination BOOLEAN DEFAULT 0,
+            achievement_social_king BOOLEAN DEFAULT 0
         )
     ''')
-    # Add total_course_time column if it does not exist
-    try:
-        c.execute('ALTER TABLE profiles ADD COLUMN total_course_time INTEGER')
-    except sqlite3.OperationalError:
-        # The column already exists
-        pass
-
-    # Add coins column if it does not exist
-    try:
-        c.execute('ALTER TABLE users ADD COLUMN coins INTEGER DEFAULT 0')
-    except sqlite3.OperationalError:
-        # The column already exists
-        pass
-
-    # Add last_sign_in column if it does not exist
-    try:
-        c.execute('ALTER TABLE users ADD COLUMN last_sign_in TEXT')
-    except sqlite3.OperationalError:
-        # The column already exists
-        pass
-
-
-
-
-    # Create gangs table
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS gangs (
-            gang_name TEXT PRIMARY KEY,
-            leader TEXT,
-            logo_url TEXT,
-            size INTEGER
-        )
-    ''')
-    # Add logo_url and size columns if they do not exist
-    try:
-        c.execute('ALTER TABLE gangs ADD COLUMN logo_url TEXT')
-    except sqlite3.OperationalError:
-        # The column already exists
-        pass
-
-    try:
-        c.execute('ALTER TABLE gangs ADD COLUMN size INTEGER')
-    except sqlite3.OperationalError:
-        # The column already exists
-        pass
+    # Add new columns if they do not exist
+    columns = [
+        "coins", "last_sign_in", "achievement_money_master", "achievement_leader_of_gang",
+        "achievement_loyal_guarddog", "achievement_iron_determination", "achievement_social_king"
+    ]
+    for column in columns:
+        try:
+            c.execute(f'ALTER TABLE users ADD COLUMN {column} INTEGER DEFAULT 0')
+        except sqlite3.OperationalError:
+            pass
+        try:
+            c.execute(f'ALTER TABLE profiles ADD COLUMN {column} INTEGER DEFAULT 0')
+        except sqlite3.OperationalError:
+            pass
 
     conn.commit()
     conn.close()
