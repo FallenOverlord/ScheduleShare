@@ -36,13 +36,16 @@ def save_profile(username, name, email, instagram, timetable):
     total_course_time = None
     if timetable:
         events, _ = extract_events(timetable)
-        total_course_time = calculate_total_course_time(events)['Total Hours'].sum()
+        total_course_time_df = calculate_total_course_time(events)
+        total_course_time = total_course_time_df['Total Hours'].sum()
     c.execute('''
         INSERT OR REPLACE INTO profiles (username, name, email, instagram, timetable, total_course_time)
         VALUES (?, ?, ?, ?, ?, ?)
     ''', (username, name, email, instagram, timetable, total_course_time))
     conn.commit()
     conn.close()
+
+    
 
 def load_profile(username):
     conn = get_db_connection()

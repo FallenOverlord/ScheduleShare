@@ -3,22 +3,33 @@ import pandas as pd
 from db import save_profile, load_profile, get_user_gangs, load_gang_members
 from ics_processing import extract_events, calculate_total_course_time
 from visualization import plot_timetable
-from comparison import plot_comparison
-from course_time import get_total_course_time
 from bar_chart import plot_bar_chart
 from pie_chart import show_pie_chart
-from gang_management import create_gang, join_gang, search_gang, generate_gang_logo, get_gang_size, get_gang_members_profiles
+from gang_management import create_gang, join_gang, search_gang, generate_gang_logo, get_gang_size, get_gang_members_profiles, calculate_gang_overlaps, get_top_gangs
 import time
 import streamlit as st
 import bcrypt
 import streamlit_authenticator as stauth
 from db import load_users, save_user, user_exists
+from overlaps import get_overlapping_courses
+from coins import initialize_coins, get_coins, daily_sign_in
+from ads import show_ad
 
 # Set page configuration
 st.set_page_config(page_title="Schedule Share", page_icon="📅", layout="wide")
 
 def logout():
     authenticator.logout('Logout', 'main')
+
+def show_overlaps(timetable1, timetable2):
+    # Find and visualize overlaps
+    overlaps = get_overlapping_courses(timetable1, timetable2)
+    if overlaps:
+        st.write("### Overlapping Courses")
+        overlap_fig = plot_timetable(overlaps, "Overlapping Courses")
+        st.plotly_chart(overlap_fig, use_container_width=True)
+    else:
+        st.write("No overlapping courses found.")
 
 # Load users from database
 config = {
@@ -66,6 +77,7 @@ if st.session_state.register:
         else:
             hashed_password = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt()).decode()
             save_user(new_username, new_email, new_name, hashed_password)
+            initialize_coins(new_username)
             st.success("Account created successfully!")
             st.session_state.register = False
 
@@ -94,10 +106,13 @@ else:
         st.write(f"Welcome *{name}*")
         logout()
 
+        # Daily sign-in bonus
+        daily_sign_in(username)
+
         # Profile Page
         st.sidebar.title("Menu")
-        page = st.sidebar.selectbox("Choose a page", ["Home", "Profile", "Search Profiles", "Gang"])
-
+        st.sidebar.write(f"Coins: {get_coins(username)}")  # Display coins in the sidebar
+        page = st.sidebar.selectbox("Choose a page", ["Home", "Profile", "Search Profiles", "Gang", "Watch Ads"])
 
 
         if page == "Home":
@@ -170,6 +185,9 @@ else:
                         # Display Comparison Results
                         comparison_fig = plot_bar_chart(username, logged_in_total_course_time, target_profile[0], searched_total_course_time)
                         st.plotly_chart(comparison_fig, use_container_width=True)
+
+                        show_overlaps(myProfile[4], target_profile[4])
+
                 else:
                     st.error("Profile not found.")
 
@@ -224,14 +242,32 @@ else:
                     st.write("Members:")
                     for member in members:
                         st.write(member)
+
+                    # Add a button to show overlaps
+                    if st.button(f"Show overlaps for {gang}"):
+                        all_overlaps = calculate_gang_overlaps(gang)
+                        st.write(f"### Overlapping Courses in {gang}")
+                        overlap_fig = plot_timetable(all_overlaps, "Overlapping Courses in Gang")
+                        st.plotly_chart(overlap_fig, use_container_width=True)
+
             else:
                 st.write("You are not a member of any gangs.")
 
+            # Display top gangs
+            st.write("### Top Gangs")
+            top_gangs = get_top_gangs()
+            if top_gangs:
+                for gang in top_gangs:
+                    st.write(f"Gang Name: {gang[0]}, Size: {gang[1]}")
+            else:
+                st.write("No gangs found.")
 
 
 
-
-
+        elif page == "Watch Ads":
+            st.title("Support Us by Watching Ads")
+            st.write("Please support us by watching the ad below.")
+            show_ad()
 
 
 

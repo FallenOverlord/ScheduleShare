@@ -9,7 +9,9 @@ def update_db():
             username TEXT PRIMARY KEY,
             email TEXT,
             name TEXT,
-            password TEXT
+            password TEXT,
+            coins INTEGER DEFAULT 0,
+            last_sign_in TEXT
         )
     ''')
     # Create profiles table
@@ -20,7 +22,8 @@ def update_db():
             email TEXT,
             instagram TEXT,
             timetable BLOB,
-            total_course_time INTEGER
+            total_course_time INTEGER,
+            coins INTEGER DEFAULT 0
         )
     ''')
     # Add total_course_time column if it does not exist
@@ -29,6 +32,23 @@ def update_db():
     except sqlite3.OperationalError:
         # The column already exists
         pass
+
+    # Add coins column if it does not exist
+    try:
+        c.execute('ALTER TABLE users ADD COLUMN coins INTEGER DEFAULT 0')
+    except sqlite3.OperationalError:
+        # The column already exists
+        pass
+
+    # Add last_sign_in column if it does not exist
+    try:
+        c.execute('ALTER TABLE users ADD COLUMN last_sign_in TEXT')
+    except sqlite3.OperationalError:
+        # The column already exists
+        pass
+
+
+
 
     # Create gangs table
     c.execute('''

@@ -26,8 +26,3 @@ def plot_bar_chart(user1, time1, user2, time2):
 
     return fig
 
-def show_pie_chart(timetable):
-    # Generate and display the pie chart
-    pie_chart_fig = plot_pie_chart(timetable)
-    if pie_chart_fig:
-        st.plotly_chart(pie_chart_fig, use_container_width=True)

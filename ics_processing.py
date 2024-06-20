@@ -1,28 +1,40 @@
 from icalendar import Calendar
+import pandas as pd
 
 def extract_events(ics_content):
     calendar = Calendar.from_ical(ics_content)
     events = []
-    title = None
+
     for component in calendar.walk():
-        if component.name == "VCALENDAR":
-            title = component.get('X-WR-CALNAME', 'Timetable')
         if component.name == "VEVENT":
-            event_summary = component.get('SUMMARY')
-            event_start = component.get('DTSTART').dt
-            event_end = component.get('DTEND').dt
-            events.append({
-                "Course": event_summary,
-                "Start": event_start,
-                "End": event_end,
-                "Day": event_start.strftime("%A"),
-                "Duration": (event_end - event_start).total_seconds() / 3600  # Duration in hours
-            })
-    return events, title
+            event = {
+                'Course': component.get('SUMMARY'),
+                'Start': component.get('DTSTART').dt,
+                'End': component.get('DTEND').dt,
+                'Location': component.get('LOCATION', 'Unknown'),  # Handle missing location
+                'Day': component.get('DTSTART').dt.strftime('%A')
+            }
+            events.append(event)
+    
+    return events, calendar.get('X-WR-CALNAME', 'Timetable')
 
 def calculate_total_course_time(events):
-    import pandas as pd
+    # Convert the list of events to a DataFrame
+    if not events:
+        return pd.DataFrame(columns=['Course', 'Total Hours'])
+    
     df = pd.DataFrame(events)
+    
+    # Ensure 'Start' and 'End' are in datetime format
+    df['Start'] = pd.to_datetime(df['Start'])
+    df['End'] = pd.to_datetime(df['End'])
+    
+    # Calculate the duration in hours
+    df['Duration'] = (df['End'] - df['Start']).dt.total_seconds() / 3600
+    
+    # Group by 'Course' and sum the durations
     total_time = df.groupby('Course')['Duration'].sum().reset_index()
     total_time.columns = ['Course', 'Total Hours']
+    
     return total_time
+    
