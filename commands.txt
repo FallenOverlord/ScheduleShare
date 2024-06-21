@@ -18,6 +18,12 @@ git add .
 git commit -m "Resolved merge conflicts"
 git push -u origin main
 
+[theme]
+primaryColor="#000000"
+backgroundColor="#b7b7b7"
+secondaryBackgroundColor="#2158c5"
+textColor="#000000"
+
 
 #update
 git add requirements.txt

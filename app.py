@@ -20,6 +20,8 @@ from achievements import display_achievements
 # Set page configuration
 st.set_page_config(page_title="Schedule Share", page_icon="📅", layout="wide")
 
+
+
 # Custom CSS
 st.markdown("""
     <style>
@@ -146,7 +148,7 @@ if st.session_state.register:
         st.session_state.register = False
     
         # Show ads on the registration page
-    show_ads()
+    #show_ads()
 
 else:
     # Login process
@@ -165,7 +167,7 @@ else:
         st.stop()
 
     # Show ads on the login page
-    show_ads()
+    #show_ads()
 
     if authentication_status:
         st.write(f"Welcome *{name}*")

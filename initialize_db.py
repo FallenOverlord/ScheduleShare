@@ -17,7 +17,11 @@ def update_db():
             achievement_leader_of_gang BOOLEAN DEFAULT 0,
             achievement_loyal_guarddog BOOLEAN DEFAULT 0,
             achievement_iron_determination BOOLEAN DEFAULT 0,
-            achievement_social_king BOOLEAN DEFAULT 0
+            achievement_social_king BOOLEAN DEFAULT 0,
+            search_enabled BOOLEAN DEFAULT 1,
+            view_email BOOLEAN DEFAULT 1,
+            view_instagram BOOLEAN DEFAULT 1,
+            view_timetable BOOLEAN DEFAULT 1
         )
     ''')
     # Create profiles table
@@ -35,7 +39,11 @@ def update_db():
             achievement_leader_of_gang BOOLEAN DEFAULT 0,
             achievement_loyal_guarddog BOOLEAN DEFAULT 0,
             achievement_iron_determination BOOLEAN DEFAULT 0,
-            achievement_social_king BOOLEAN DEFAULT 0
+            achievement_social_king BOOLEAN DEFAULT 0,
+            search_enabled BOOLEAN DEFAULT 1,
+            view_email BOOLEAN DEFAULT 1,
+            view_instagram BOOLEAN DEFAULT 1,
+            view_timetable BOOLEAN DEFAULT 1
         )
     ''')
     # Add new columns if they do not exist
