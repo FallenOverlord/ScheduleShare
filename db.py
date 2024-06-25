@@ -15,11 +15,12 @@ def load_users():
         'usernames': {}
     }
     for row in rows:
-        users['usernames'][row[0]] = {
-            'email': row[1],
-            'name': row[2],
-            'password': row[3]
-        }
+        if row[0] and row[3]:  # Ensure username and password are not empty
+            users['usernames'][row[0]] = {
+                'email': row[1],
+                'name': row[2],
+                'password': row[3]
+            }
     return users
 
 def save_user(username, email, name, password):
@@ -30,6 +31,17 @@ def save_user(username, email, name, password):
     conn.commit()
     conn.close()
 
+def update_privacy_settings(username, search_enabled, view_email, view_instagram, view_timetable):
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute('''
+        UPDATE users 
+        SET search_enabled = ?, view_email = ?, view_instagram = ?, view_timetable = ? 
+        WHERE username = ?
+    ''', (search_enabled, view_email, view_instagram, view_timetable, username))
+    conn.commit()
+    conn.close()
+    
 def save_profile(username, name, email, instagram, timetable):
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
@@ -106,3 +118,5 @@ def load_gang_members(username):
         gang_members[gang] = [member[0] for member in members]
     conn.close()
     return gang_members
+
+

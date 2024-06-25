@@ -37,6 +37,16 @@ def register_user(new_username, new_email, new_name, new_password):
     config['credentials'] = load_users()
     authenticator.credentials = config['credentials']
 
+
+def register_user(new_username, new_email, new_name, new_password):
+    if user_exists(new_username):
+        raise ValueError("Username already exists.")
+    hashed_password = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt()).decode()
+    save_user(new_username, new_email, new_name, hashed_password)
+    # Refresh the config with the new user
+    config['credentials'] = load_users()
+    authenticator.credentials = config['credentials']
+
 def login():
     try:
         name, authentication_status, username = authenticator.login(
@@ -50,8 +60,7 @@ def login():
         )
         return name, authentication_status, username
     except KeyError as e:
-        st.error(f"KeyError: {e}")
-        st.stop()
+        return None, False, None
 
 def logout():
     authenticator.logout('Logout', 'main')

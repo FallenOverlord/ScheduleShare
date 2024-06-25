@@ -8,7 +8,7 @@ def create_gang(gang_name, leader, logo_url, size):
     c = conn.cursor()
     c.execute('INSERT INTO gangs (gang_name, leader, logo_url, size) VALUES (?, ?, ?, ?)', 
               (gang_name, leader, logo_url, size))
-    
+    c.execute('UPDATE gangs SET size = size + 1 WHERE gang_name = ?', (gang_name,))
         # Update the user's achievements
     c.execute('UPDATE users SET achievement_leader_of_gang = 1 WHERE username = ?', (leader,))
 

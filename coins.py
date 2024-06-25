@@ -1,5 +1,6 @@
 import sqlite3
 from datetime import datetime
+import streamlit as st
 
 def get_db_connection():
     conn = sqlite3.connect('users.db')
@@ -27,6 +28,13 @@ def add_coins(username, amount):
     conn.commit()
     conn.close()
 
+def use_coins(username, amount):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute('UPDATE users SET coins = coins - ? WHERE username = ?', (amount, username))
+    conn.commit()
+    conn.close()
+
 def daily_sign_in(username):
     conn = get_db_connection()
     c = conn.cursor()
@@ -50,7 +58,7 @@ def daily_sign_in(username):
             c.execute('SELECT coins, achievement_iron_determination FROM users WHERE username = ?', (username,))
             coins, iron_determination = c.fetchone()
 
-            if coins >= 100:
+            if coins >= 120:
                 c.execute('UPDATE users SET achievement_money_master = 1 WHERE username = ?', (username,))
             
             if consecutive_sign_in_days >= 3 and not iron_determination:
