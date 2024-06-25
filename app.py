@@ -18,6 +18,7 @@ import streamlit.components.v1 as components
 from achievements import display_achievements
 from schedule_creator import schedule_creator
 from about import about_page
+import re
 
 # Set page configuration
 st.set_page_config(page_title="Schedule Share", page_icon="📅", layout="wide")
@@ -69,7 +70,7 @@ st.markdown("""
 
 # Initialize session state for page navigation
 if 'page' not in st.session_state:
-    st.session_state.page = "Home"
+    st.session_state.page = "Main"
 
 def set_page(page):
     st.session_state.page = page
@@ -127,6 +128,18 @@ def display_comparison(myProfile, target_profile, username):
 
         show_overlaps(myProfile[4], target_profile[4])
 
+def is_strong_password(password):
+    if len(password) < 8:
+        return False
+    if not re.search("[a-z]", password):
+        return False
+    if not re.search("[A-Z]", password):
+        return False
+    if not re.search("[0-9]", password):
+        return False
+    if not re.search("[^a-zA-Z0-9]", password):
+        return False
+    return True
 
 # Load users from database
 config = {
@@ -183,261 +196,282 @@ if 'logout' not in st.session_state:
 
 if st.session_state.register:
     st.title("Create a New Account")
+
+    st.markdown("""
+    <div style="background-color: #c7b1c7; padding: 10px; border-radius: 5px;">
+        <strong>For security reasons, passwords must meet the following criteria:</strong>
+        <ul>
+            <li>Length of at least 8 characters 📏</li>
+            <li>Contain both uppercase and lowercase letters 🔠</li>
+            <li>Include numbers 🔢</li>
+            <li>Include special characters ❗❓</li>
+        </ul>
+        <p>Sorry for any inconvenience 🫡</p>
+    </div>
+    """, unsafe_allow_html=True)
+
     new_username = st.text_input("Username")
-    new_email = st.text_input("Email")
-    new_name = st.text_input("Full Name")
+    new_name = new_username
     new_password = st.text_input("Password", type="password")
-    new_password_confirm = st.text_input("Confirm Password", type="password")   
+    new_password_confirm = st.text_input("Confirm Password", type="password")
 
     if st.button("Register"):
-        if not new_username.islower():
+        if not new_username or not new_name or not new_password or not new_password_confirm:
+            st.error("All fields are required.")
+        elif not new_username.islower():
             st.error("Username must be in all non-capital letters.")
         elif new_password != new_password_confirm:
             st.error("Passwords do not match!")
+        elif not is_strong_password(new_password):
+            st.error("Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.")
+        elif user_exists(new_username):
+            st.error("Username already exists. Please choose a different username.")
         else:
             hashed_password = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt()).decode()
-            save_user(new_username, new_email, new_name, hashed_password)
+            save_user(new_username, None, new_name, hashed_password)
             initialize_coins(new_username)
             st.success("Account created successfully!")
-            #add_coins(new_username, 100)
             st.session_state.register = False
 
     if st.button("Go back to login"):
         st.session_state.register = False
-    
-        # Show ads on the registration page
-    #show_ads()
 
 else:
-    #refresh_credentials()
-    #clear_session_state()
-    # Login process
-    try:
-        name, authentication_status, username = authenticator.login(
-            location='main',
-            fields={
-                'Form name': 'Login',
-                'Username': 'Username',
-                'Password': 'Password',
-                'Login': 'Login'
-            }
-        )
-    except KeyError as e:
-        st.error(f"KeyError: {e}")
-        st.stop()
-
-
-    if authentication_status:
-        st.write(f"Welcome *{name}*")
-        logout()
-
-        # Daily sign-in bonus
-        daily_sign_in(username)
-
-        # Profile Page
+    if st.session_state.page == "Main":
+        st.title("Welcome to Schedule Share!")
+        st.video("https://www.youtube.com/watch?v=D0UnqGm_miA")  # Update with your video URL
         st.sidebar.image("images//logo.png", width=100)
-        st.sidebar.title("Menu")
-        st.sidebar.write(f"💲{get_coins(username)}")  # Display coins in the sidebar
-        page = st.sidebar.selectbox("Choose a page", ["Home", "Create Schedule", "Profile", "Connect", "Gang", "About"])
+        st.sidebar.title("Join Schedule Share🥰")
+        if st.sidebar.button("Register"):
+            st.session_state.register = True
+        if st.sidebar.button("Sign In"):
+            st.session_state.page = "Login"
+    
+    elif st.session_state.page == "Login":
+        # Login process
+        try:
+            name, authentication_status, username = authenticator.login(
+                location='main',
+                fields={
+                    'Form name': 'Login',
+                    'Username': 'Username',
+                    'Password': 'Password',
+                    'Login': 'Login'
+                }
+            )
+        except KeyError as e:
+            st.error(f"KeyError: {e}")
+            st.stop()
 
 
-        if page == "Home":
-            st.title("Home")
-            st.write("Welcome to Schedule Share! 🏠")
+        if authentication_status:
+            st.write(f"Welcome *{name}*")
+            logout()
 
-            # Load the profile and timetable for the logged-in user
-            profile = load_profile(username)
+            # Daily sign-in bonus
+            daily_sign_in(username)
 
-            try:
-                #draw the user's timetable
-                if profile[4]:
-                    events, title = extract_events(profile[4])
-                    timetable_fig = plot_timetable(events, title)
-                    if timetable_fig:
-                        st.plotly_chart(timetable_fig, use_container_width=True)
-
-                #st.write("Loaded profile:", profile)  # Debugging
-                if len(profile) > 5 and profile[5] is not None:
-                    logged_in_total_course_time = profile[5]
-                    st.session_state.comparison_data.append((username, logged_in_total_course_time))
-                    st.write("your total course time:", logged_in_total_course_time)  # Debugging
-                
-                # Generate and display the pie chart
-                show_pie_chart(profile[4])
-            
-            except:
-                st.write("Please upload your timetable in the 'Profile' section. 🫡")
-                st.write("Don't have an .ics files yet? We've got u covered! Create a new schedule NOW! 💘")
-
-            # Display achievements
-            display_achievements(username)
-        
-        elif page == "Create Schedule":
-            schedule_creator()
+            # Profile Page
+            st.sidebar.image("images//logo.png", width=100)
+            st.sidebar.title("Menu")
+            st.sidebar.write(f"💲{get_coins(username)}")  # Display coins in the sidebar
+            page = st.sidebar.selectbox("Choose a page", ["Home", "Create Schedule", "Profile", "Connect", "Gang", "About"])
 
 
+            if page == "Home":
+                st.title("Home")
+                st.write("Welcome to Schedule Share! 🏠")
 
+                # Load the profile and timetable for the logged-in user
+                profile = load_profile(username)
 
-
-        elif page == "Profile":
-            st.title("Create Your Profile")
-            profile_name = st.text_input("Name", value=name)
-            profile_email = st.text_input("Email", value=config['credentials']['usernames'][username]['email'])
-            profile_instagram = st.text_input("Instagram Username")
-            profile_timetable = st.file_uploader("Upload your timetable (.ics file)", type="ics")
-
-            if st.button("Save Profile"):
                 try:
-                    timetable_content = profile_timetable.read() if profile_timetable else None
-                    save_profile(username, profile_name, profile_email, profile_instagram, timetable_content)
-                    st.success("Profile created successfully!")
-                except:
-                    profile_timetable = None
+                    #draw the user's timetable
+                    if profile[4]:
+                        events, title = extract_events(profile[4])
+                        timetable_fig = plot_timetable(events, title)
+                        if timetable_fig:
+                            st.plotly_chart(timetable_fig, use_container_width=True)
 
-        elif page == "Connect":
-            st.title("Search for a Profile")
-            search_name = st.text_input("Enter name to search")
-
-
-            # Display the friend list
-            st.subheader("Your Friends")
-            friends = get_friends(username)
-            if friends:
-                for friend in friends:
-                    with st.expander(friend):
-                        friend_profile = load_profile(friend)
-                        if friend_profile:
-                            display_profile(friend_profile)
-                            myProfile = load_profile(username)
-                            if myProfile and st.button(f"Show comparison with {friend}", key=f"compare_{friend}"):
-                                display_comparison(myProfile, friend_profile, username)
-
-            # Add friend button
-            if st.button("Favorite ❤️", key="add_friend"):
-                if not load_profile(search_name):
-                    st.warning("This user doesn't exist! ☠️")
+                    #st.write("Loaded profile:", profile)  # Debugging
+                    if len(profile) > 5 and profile[5] is not None:
+                        logged_in_total_course_time = profile[5]
+                        st.session_state.comparison_data.append((username, logged_in_total_course_time))
+                        st.write("your total course time:", logged_in_total_course_time)  # Debugging
+                    
+                    # Generate and display the pie chart
+                    show_pie_chart(profile[4])
                 
-                elif search_name in friends:
-                    st.warning("They're already your friend! 🤡")
+                except:
+                    st.write("Please upload your timetable in the 'Profile' section. 🫡")
+                    st.write("Don't have an .ics files yet? We've got u covered! Create a new schedule NOW! 💘")
 
-                else:
-                    add_friend(username, search_name)
-                    st.success(f"{search_name} has been added to your friend list!")
-
-                    st.rerun()
-
-            if st.button("Search"):
-
-                # Load the current user's profile
-                myProfile = load_profile(username)
-
-                # Load the target user's profile
-                target_profile = load_profile(search_name)
-
-                # Ensure target_profile is valid
-                if target_profile:
-
-                    st.write(f"Username: {target_profile[0]}, Name: {target_profile[1]}, Email: {target_profile[2]}, Instagram: {target_profile[3]}")
-
-                    display_profile(target_profile)
-
-                    # Display total course time of the target user
-                    searched_total_course_time = target_profile[5]
-
-                    # Display total course time of the current user
-                    if myProfile and myProfile[5] is not None:
-                        logged_in_total_course_time = myProfile[5]
-
-                        # Display Comparison Results
-                        comparison_fig = plot_bar_chart(username, logged_in_total_course_time, target_profile[0], searched_total_course_time)
-                        st.plotly_chart(comparison_fig, use_container_width=True)
-
-                        show_overlaps(myProfile[4], target_profile[4])
-
-
-
-                else:
-                    st.error("Profile not found.")
-
-        elif page == "About":
-            about_page()
+                # Display achievements
+                display_achievements(username)
             
+            elif page == "Create Schedule":
+                schedule_creator()
 
-        elif page == "Gang":
-            st.title("Gang Management")
-            action = st.radio("Choose an action", ["Create Gang", "Join Gang", "Search Gang"])
 
-            if action == "Create Gang":
-                gang_name = st.text_input("Enter gang name")
-                if st.button("Create Gang"):
-                    logo_url = generate_gang_logo(gang_name)
-                    size = 1  # Starting size of the gang
-                    create_gang(gang_name, username, logo_url, size)
-                    st.success(f"Gang '{gang_name}' created successfully!")
+            elif page == "Profile":
+                st.title("Create Your Profile")
+                profile_name = st.text_input("Name", value=name)
+                profile_email = st.text_input("Email", value=config['credentials']['usernames'][username]['email'])
+                profile_instagram = st.text_input("Instagram Username")
+                profile_timetable = st.file_uploader("Upload your timetable (.ics file)", type="ics")
 
-            elif action == "Join Gang":
-                gang_name = st.text_input("Enter gang name to join")
-                if st.button("Join Gang"):
-                    join_gang(gang_name, username)
-                    st.success(f"You have joined the gang '{gang_name}'!")
+                if st.button("Save Profile"):
+                    try:
+                        timetable_content = profile_timetable.read() if profile_timetable else None
+                        save_profile(username, profile_name, profile_email, profile_instagram, timetable_content)
+                        st.success("Profile created successfully!")
+                    except:
+                        profile_timetable = None
 
-            elif action == "Search Gang":
-                gang_name = st.text_input("Enter gang name to search")
-                if st.button("Search Gang"):
-                    gang, members = search_gang(gang_name)
-                    if gang:
+            elif page == "Connect":
+                st.title("Search for a Profile")
+                search_name = st.text_input("Enter name to search")
+
+
+                # Display the friend list
+                st.subheader("Your Friends")
+                friends = get_friends(username)
+                if friends:
+                    for friend in friends:
+                        with st.expander(friend):
+                            friend_profile = load_profile(friend)
+                            if friend_profile:
+                                display_profile(friend_profile)
+                                myProfile = load_profile(username)
+                                if myProfile and st.button(f"Show comparison with {friend}", key=f"compare_{friend}"):
+                                    display_comparison(myProfile, friend_profile, username)
+
+                # Add friend button
+                if st.button("Favorite ❤️", key="add_friend"):
+                    if not load_profile(search_name):
+                        st.warning("This user doesn't exist! ☠️")
+                    
+                    elif search_name in friends:
+                        st.warning("They're already your friend! 🤡")
+
+                    else:
+                        add_friend(username, search_name)
+                        st.success(f"{search_name} has been added to your friend list!")
+
+                        st.rerun()
+
+                if st.button("Search"):
+
+                    # Load the current user's profile
+                    myProfile = load_profile(username)
+
+                    # Load the target user's profile
+                    target_profile = load_profile(search_name)
+
+                    # Ensure target_profile is valid
+                    if target_profile:
+
+                        st.write(f"Username: {target_profile[0]}, Name: {target_profile[1]}, Email: {target_profile[2]}, Instagram: {target_profile[3]}")
+
+                        display_profile(target_profile)
+
+                        # Display total course time of the target user
+                        searched_total_course_time = target_profile[5]
+
+                        # Display total course time of the current user
+                        if myProfile and myProfile[5] is not None:
+                            logged_in_total_course_time = myProfile[5]
+
+                            # Display Comparison Results
+                            comparison_fig = plot_bar_chart(username, logged_in_total_course_time, target_profile[0], searched_total_course_time)
+                            st.plotly_chart(comparison_fig, use_container_width=True)
+
+                            show_overlaps(myProfile[4], target_profile[4])
+                    else:
+                        st.error("Profile not found.")
+
+            elif page == "About":
+                about_page()
+                
+
+            elif page == "Gang":
+                st.title("Gang Management")
+                action = st.radio("Choose an action", ["Create Gang", "Join Gang", "Search Gang"])
+
+                if action == "Create Gang":
+                    gang_name = st.text_input("Enter gang name")
+                    if st.button("Create Gang"):
                         try:
-                            #create gang logo
-                            st.write(f"Leader: {gang[1]}, Size: {gang[3]}")
-                            st.image(gang[2], caption=f"Logo for {gang[0]}")
+                            logo_url = generate_gang_logo(gang_name)
+                            size = 1  # Starting size of the gang
+                            create_gang(gang_name, username, logo_url, size)
+                            st.success(f"Gang '{gang_name}' created successfully!")
                         except:
-                            st.write(f"This gang currently have no logo. 😰")
+                            st.warning("Gang already exist!🤯 You can join this gang using the 'join gang' button")
 
+                elif action == "Join Gang":
+                    gang_name = st.text_input("Enter gang name to join")
+                    if st.button("Join Gang"):
+                        join_gang(gang_name, username)
+                        st.success(f"You have joined the gang '{gang_name}'!")
+
+                elif action == "Search Gang":
+                    gang_name = st.text_input("Enter gang name to search")
+                    if st.button("Search Gang"):
+                        gang, members = search_gang(gang_name)
+                        if gang:
+                            try:
+                                #create gang logo
+                                st.write(f"Leader: {gang[1]}, Size: {gang[3]}")
+                                st.image(gang[2], caption=f"Logo for {gang[0]}")
+                            except:
+                                st.write(f"This gang currently have no logo. 😰")
+
+                            st.write("Members:")
+                            for member in members:
+                                st.write(member)
+
+                            st.write("### Gang Members' Schedules and Profiles")
+                            profiles = get_gang_members_profiles(gang_name)
+                            for profile in profiles:
+                                st.write(f"Username: {profile[0]}, Name: {profile[1]}, Email: {profile[2]}, Instagram: {profile[3]}")
+                                if profile[4]:
+                                    events, title = extract_events(profile[4])
+                                    timetable_fig = plot_timetable(events, title)
+                                    if timetable_fig:
+                                        st.plotly_chart(timetable_fig, use_container_width=True)
+                        else:
+                            st.error("Gang not found.")
+                        
+                # Display user's gangs
+                st.write("### Your Gangs")
+                user_gangs = get_user_gangs(username)
+                if user_gangs:
+                    for gang in user_gangs:
+                        st.write(f"Gang: {gang}")
+                        members = load_gang_members(gang)
                         st.write("Members:")
                         for member in members:
                             st.write(member)
 
-                        st.write("### Gang Members' Schedules and Profiles")
-                        profiles = get_gang_members_profiles(gang_name)
-                        for profile in profiles:
-                            st.write(f"Username: {profile[0]}, Name: {profile[1]}, Email: {profile[2]}, Instagram: {profile[3]}")
-                            if profile[4]:
-                                events, title = extract_events(profile[4])
-                                timetable_fig = plot_timetable(events, title)
-                                if timetable_fig:
-                                    st.plotly_chart(timetable_fig, use_container_width=True)
-                    else:
-                        st.error("Gang not found.")
-                    
-            # Display user's gangs
-            st.write("### Your Gangs")
-            user_gangs = get_user_gangs(username)
-            if user_gangs:
-                for gang in user_gangs:
-                    st.write(f"Gang: {gang}")
-                    members = load_gang_members(gang)
-                    st.write("Members:")
-                    for member in members:
-                        st.write(member)
+                        # Add a button to show overlaps
+                        if st.button(f"Show overlaps for {gang}"):
+                            all_overlaps = calculate_gang_overlaps(gang)
+                            st.write(f"### Overlapping Courses in {gang}")
+                            overlap_fig = plot_timetable(all_overlaps, "Overlapping Courses in Gang")
+                            st.plotly_chart(overlap_fig, use_container_width=True)
 
-                    # Add a button to show overlaps
-                    if st.button(f"Show overlaps for {gang}"):
-                        all_overlaps = calculate_gang_overlaps(gang)
-                        st.write(f"### Overlapping Courses in {gang}")
-                        overlap_fig = plot_timetable(all_overlaps, "Overlapping Courses in Gang")
-                        st.plotly_chart(overlap_fig, use_container_width=True)
+                else:
+                    st.write("You are not a member of any gangs.")
 
-            else:
-                st.write("You are not a member of any gangs.")
-
-            # Display top gangs
-            st.write("### Top Gangs")
-            top_gangs = get_top_gangs()
-            if top_gangs:
-                for gang in top_gangs:
-                    st.write(f"Gang Name: {gang[0]}, Size: {gang[1]}")
-            else:
-                st.write("No gangs found.")
+                # Display top gangs
+                st.write("### Top Gangs")
+                top_gangs = get_top_gangs()
+                if top_gangs:
+                    for gang in top_gangs:
+                        st.write(f"Gang Name: {gang[0]}, Size: {gang[1]}")
+                else:
+                    st.write("No gangs found.")
 
 
 
@@ -450,10 +484,7 @@ else:
 
 
 
-    elif authentication_status == False:
-        st.error("Username/password is incorrect")
-    elif authentication_status == None:
-        st.warning("Please enter your username and password")
-
-    if st.button("Create a new account"):
-        st.session_state.register = True
+        elif authentication_status == False:
+            st.error("Username/password is incorrect")
+        elif authentication_status == None:
+            st.warning("Please enter your username and password")

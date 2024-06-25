@@ -6,6 +6,7 @@ from overlaps import get_overlapping_courses
 def create_gang(gang_name, leader, logo_url, size):
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
+    
     c.execute('INSERT INTO gangs (gang_name, leader, logo_url, size) VALUES (?, ?, ?, ?)', 
               (gang_name, leader, logo_url, size))
     c.execute('UPDATE gangs SET size = size + 1 WHERE gang_name = ?', (gang_name,))
@@ -80,3 +81,11 @@ def get_top_gangs(limit=3):
     top_gangs = c.fetchall()
     conn.close()
     return top_gangs
+
+def gang_exists(gang_name):
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute('SELECT 1 FROM gangs WHERE name = ?', (gang_name,))
+    exists = c.fetchone() is not None
+    conn.close()
+    return exists
