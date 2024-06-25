@@ -17,8 +17,9 @@ from ads import show_ad
 import streamlit.components.v1 as components
 from achievements import display_achievements
 from schedule_creator import schedule_creator
-from about import about_page
+from about import about_page, contact
 import re
+from policy import user_agreement
 
 # Set page configuration
 st.set_page_config(page_title="Schedule Share", page_icon="📅", layout="wide")
@@ -93,19 +94,12 @@ def refresh_credentials():
     st.write(f"Loaded credentials: {config['credentials']}")
     st.write(f"Authenticator credentials after refresh: {authenticator.credentials}")
 
-# Function to clear session state
-def clear_session_state():
-    keys_to_clear = ['authentication_status', 'username', 'name', 'register', 'comparison_data']
-    for key in keys_to_clear:
-        if key in st.session_state:
-            del st.session_state[key]
-
+def is_valid_username(username):
+    # Check if username is lowercase, alphanumeric and between 3 to 20 characters long
+    return re.match("^[a-z0-9_]{3,20}$", username) is not None
 
 def logout():
-    
     authenticator.logout('Logout', 'main')
-    
-    #clear_session_state()
 
 def show_overlaps(timetable1, timetable2):
     # Find and visualize overlaps
@@ -210,22 +204,26 @@ if st.session_state.register:
     </div>
     """, unsafe_allow_html=True)
 
-    new_username = st.text_input("Username")
+    new_username = st.text_input("Username (❌do not accept 🚫special characters, 🚫capital lettes and 🚫empty spaces)")
     new_name = new_username
     new_password = st.text_input("Password", type="password")
     new_password_confirm = st.text_input("Confirm Password", type="password")
+    accept_policy = user_agreement()
 
     if st.button("Register"):
         if not new_username or not new_name or not new_password or not new_password_confirm:
             st.error("All fields are required.")
-        elif not new_username.islower():
-            st.error("Username must be in all non-capital letters.")
+        elif not new_username.islower() or not is_valid_username(new_username):
+            st.error("Username invalid.")
+            st.warning("Check if username is lowercase, alphanumeric and between 3 to 20 characters long.")
         elif new_password != new_password_confirm:
             st.error("Passwords do not match!")
         elif not is_strong_password(new_password):
             st.error("Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.")
         elif user_exists(new_username):
             st.error("Username already exists. Please choose a different username.")
+        elif not accept_policy:
+            st.error("You must accept the user policy agreement to register.")
         else:
             hashed_password = bcrypt.hashpw(new_password.encode(), bcrypt.gensalt()).decode()
             save_user(new_username, None, new_name, hashed_password)
@@ -241,11 +239,13 @@ else:
         st.title("Welcome to Schedule Share!")
         st.video("https://www.youtube.com/watch?v=D0UnqGm_miA")  # Update with your video URL
         st.sidebar.image("images//logo.png", width=100)
-        st.sidebar.title("Join Schedule Share🥰")
+        st.sidebar.title("Join Us Now🥰")
         if st.sidebar.button("Register"):
             st.session_state.register = True
         if st.sidebar.button("Sign In"):
             st.session_state.page = "Login"
+        
+        contact()
     
     elif st.session_state.page == "Login":
         # Login process
@@ -276,7 +276,7 @@ else:
             st.sidebar.title("Menu")
             st.sidebar.write(f"💲{get_coins(username)}")  # Display coins in the sidebar
             page = st.sidebar.selectbox("Choose a page", ["Home", "Create Schedule", "Profile", "Connect", "Gang", "About"])
-
+            contact()
 
             if page == "Home":
                 st.title("Home")
@@ -472,17 +472,6 @@ else:
                         st.write(f"Gang Name: {gang[0]}, Size: {gang[1]}")
                 else:
                     st.write("No gangs found.")
-
-
-
-
-
-
-
-
-
-
-
 
         elif authentication_status == False:
             st.error("Username/password is incorrect")
