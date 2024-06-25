@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from db import save_profile, load_profile, get_user_gangs, load_gang_members
+from db import save_profile, load_profile, get_user_gangs, load_gang_members, add_friend, get_friends
 from ics_processing import extract_events, calculate_total_course_time
 from visualization import plot_timetable
 from bar_chart import plot_bar_chart
@@ -75,6 +75,14 @@ def set_page(page):
     st.session_state.page = page
     
 
+def display_profile(profile):
+    st.write(f"Username: {profile[0]}, Name: {profile[1]}, Email: {profile[2]}, Instagram: {profile[3]}")
+    if profile[4]:
+        events, title = extract_events(profile[4])
+        timetable_fig = plot_timetable(events, title)
+        if timetable_fig:
+            st.plotly_chart(timetable_fig, use_container_width=True)
+
 def refresh_credentials():
     config['credentials'] = load_users()
     # Ensure there are no empty keys
@@ -107,6 +115,18 @@ def show_overlaps(timetable1, timetable2):
         st.plotly_chart(overlap_fig, use_container_width=True)
     else:
         st.write("No overlapping courses found.")
+
+def display_comparison(myProfile, target_profile, username):
+    searched_total_course_time = target_profile[5]
+
+    if myProfile and myProfile[5] is not None:
+        logged_in_total_course_time = myProfile[5]
+
+        comparison_fig = plot_bar_chart(username, logged_in_total_course_time, target_profile[0], searched_total_course_time)
+        st.plotly_chart(comparison_fig, use_container_width=True)
+
+        show_overlaps(myProfile[4], target_profile[4])
+
 
 # Load users from database
 config = {
@@ -215,9 +235,10 @@ else:
         daily_sign_in(username)
 
         # Profile Page
+        st.sidebar.image("images//logo.png", width=100)
         st.sidebar.title("Menu")
-        st.sidebar.write(f"Coins: {get_coins(username)}")  # Display coins in the sidebar
-        page = st.sidebar.selectbox("Choose a page", ["Home", "Create Schedule", "Profile", "Search Profiles", "Gang", "About"])
+        st.sidebar.write(f"💲{get_coins(username)}")  # Display coins in the sidebar
+        page = st.sidebar.selectbox("Choose a page", ["Home", "Create Schedule", "Profile", "Connect", "Gang", "About"])
 
 
         if page == "Home":
@@ -273,9 +294,38 @@ else:
                 except:
                     profile_timetable = None
 
-        elif page == "Search Profiles":
+        elif page == "Connect":
             st.title("Search for a Profile")
             search_name = st.text_input("Enter name to search")
+
+
+            # Display the friend list
+            st.subheader("Your Friends")
+            friends = get_friends(username)
+            if friends:
+                for friend in friends:
+                    with st.expander(friend):
+                        friend_profile = load_profile(friend)
+                        if friend_profile:
+                            display_profile(friend_profile)
+                            myProfile = load_profile(username)
+                            if myProfile and st.button(f"Show comparison with {friend}", key=f"compare_{friend}"):
+                                display_comparison(myProfile, friend_profile, username)
+
+            # Add friend button
+            if st.button("Favorite ❤️", key="add_friend"):
+                if not load_profile(search_name):
+                    st.warning("This user doesn't exist! ☠️")
+                
+                elif search_name in friends:
+                    st.warning("They're already your friend! 🤡")
+
+                else:
+                    add_friend(username, search_name)
+                    st.success(f"{search_name} has been added to your friend list!")
+
+                    st.rerun()
+
             if st.button("Search"):
 
                 # Load the current user's profile
@@ -286,14 +336,10 @@ else:
 
                 # Ensure target_profile is valid
                 if target_profile:
+
                     st.write(f"Username: {target_profile[0]}, Name: {target_profile[1]}, Email: {target_profile[2]}, Instagram: {target_profile[3]}")
 
-                    # Draw the target user's timetable
-                    if target_profile[4]:
-                        events, title = extract_events(target_profile[4])
-                        timetable_fig = plot_timetable(events, title)
-                        if timetable_fig:
-                            st.plotly_chart(timetable_fig, use_container_width=True)
+                    display_profile(target_profile)
 
                     # Display total course time of the target user
                     searched_total_course_time = target_profile[5]
@@ -307,6 +353,8 @@ else:
                         st.plotly_chart(comparison_fig, use_container_width=True)
 
                         show_overlaps(myProfile[4], target_profile[4])
+
+
 
                 else:
                     st.error("Profile not found.")

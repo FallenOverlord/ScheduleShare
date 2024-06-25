@@ -46,6 +46,15 @@ def update_db():
             view_timetable BOOLEAN DEFAULT 1
         )
     ''')
+    # Create friends table
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS friends (
+            user TEXT,
+            friend TEXT,
+            PRIMARY KEY (user, friend)
+        )
+    ''')
+
     # Add new columns if they do not exist
     columns = [
         "coins", "last_sign_in", "achievement_money_master", "achievement_leader_of_gang",

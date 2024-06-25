@@ -120,3 +120,19 @@ def load_gang_members(username):
     return gang_members
 
 
+def add_friend(user, friend):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute('INSERT INTO friends (user, friend) VALUES (?, ?)', (user, friend))
+    conn.commit()
+    conn.close()
+
+def get_friends(username):
+    conn = get_db_connection()
+    c = conn.cursor()
+    c.execute('SELECT friend FROM friends WHERE user=?', (username,))
+    friends = c.fetchall()
+    conn.close()
+    return [friend[0] for friend in friends]
+
+
