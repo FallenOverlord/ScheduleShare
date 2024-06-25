@@ -237,7 +237,7 @@ if st.session_state.register:
 else:
     if st.session_state.page == "Main":
         st.title("Welcome to Schedule Share!")
-        st.video("https://www.youtube.com/watch?v=D0UnqGm_miA")  # Update with your video URL
+        st.video("https://youtu.be/qmYdvnNmSNU")  # Update with your video URL
         st.sidebar.image("images//logo.png", width=100)
         st.sidebar.title("Join Us Now🥰")
         if st.sidebar.button("Register"):
