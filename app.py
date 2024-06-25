@@ -17,6 +17,7 @@ from ads import show_ad
 import streamlit.components.v1 as components
 from achievements import display_achievements
 from schedule_creator import schedule_creator
+from about import about_page
 
 # Set page configuration
 st.set_page_config(page_title="Schedule Share", page_icon="📅", layout="wide")
@@ -216,7 +217,7 @@ else:
         # Profile Page
         st.sidebar.title("Menu")
         st.sidebar.write(f"Coins: {get_coins(username)}")  # Display coins in the sidebar
-        page = st.sidebar.selectbox("Choose a page", ["Home", "Create Schedule", "Profile", "Search Profiles", "Gang"])
+        page = st.sidebar.selectbox("Choose a page", ["Home", "Create Schedule", "Profile", "Search Profiles", "Gang", "About"])
 
 
         if page == "Home":
@@ -309,6 +310,10 @@ else:
 
                 else:
                     st.error("Profile not found.")
+
+        elif page == "About":
+            about_page()
+            
 
         elif page == "Gang":
             st.title("Gang Management")
