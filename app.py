@@ -223,9 +223,6 @@ else:
             st.title("Home")
             st.write("Welcome to Schedule Share! 🏠")
 
-            if get_coins(username) <= 100:
-                st.write(" 💲💲💲Running Out of money? Complete the Profile Section and Receive COINS! 💲💲💲")
-
             # Load the profile and timetable for the logged-in user
             profile = load_profile(username)
 
@@ -265,18 +262,7 @@ else:
             profile_name = st.text_input("Name", value=name)
             profile_email = st.text_input("Email", value=config['credentials']['usernames'][username]['email'])
             profile_instagram = st.text_input("Instagram Username")
-            
-            if get_coins(username) < 100:
-                st.write(" 💲💲💲Fill Out Personal Info and Receive COINS! 💲💲💲")
-            if profile_email and profile_instagram:
-                add_coins(username, 50)
-            
-            if st.button("Upload a new schedule! Cost: 💵 100") and get_coins(username) >= 100:
-                use_coins(username, 100)
-                
-                profile_timetable = st.file_uploader("Upload your timetable (.ics file)", type="ics")
-            else:
-                st.write("Not Enough Money! You have: 💵", get_coins(username))
+            profile_timetable = st.file_uploader("Upload your timetable (.ics file)", type="ics")
 
             if st.button("Save Profile"):
                 try:
